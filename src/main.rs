@@ -11,7 +11,24 @@ pub fn save_note(message: &str, file_path: &str) -> Result<(), Error> {
     Ok(())
 }
 
+pub fn take_note(save_location: &str) -> Result<(), Error> {
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input)?;
+    let input = input.trim();
+
+    match input.to_lowercase().as_str() {
+        "" => {
+            println!("Please enter a valid note.");
+        }
+        _ => {
+            save_note(input, save_location)?;
+        }
+    }
+    Ok(())
+}
+
 fn main() {
-    save_note("Testing my code", "notes.txt").expect("Failed to save note");
-    println!("Note saved successfully!");
+    println!("Enter note: ");
+    take_note("test.txt").expect("Failed to take note");
+    println!("Note saved successfully");
 }
