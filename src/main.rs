@@ -19,24 +19,37 @@ pub fn save_note(message: &str, file_path: &str) -> Result<(), Error> {
 }
 
 pub fn take_note(save_location: &str) -> Result<(), Error> {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input)?;
-    let input = input.trim();
-
-    match input.to_lowercase().as_str() {
-        "" => {
-            println!("Please enter a valid note.");
-        }
-        _ => {
-            save_note(input, save_location)?;
+    loop {
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        let input = input.trim();
+        match input.to_lowercase().as_str() {
+            "quit" => break,
+            "" => {
+                println!("Please enter a valid note.");
+            }
+            _ => {
+                save_note(input, save_location)?;
+            }
         }
     }
+
     Ok(())
 }
 
 pub fn read_note(file_path: &str) -> Result<(), Error> {
+    if !std::path::Path::new(file_path).exists() {
+        println!("File not found.");
+        return Ok(());
+    }
+
     let contents = fs::read_to_string(file_path)?;
-    println!("File Contents:\n{}", contents);
+
+    if contents.is_empty() {
+        println!("Notes empty")
+    } else {
+        println!("File Contents:\n{}", contents);
+    }
     Ok(())
 }
 
@@ -64,7 +77,7 @@ pub fn delete_note(file_path: &str, target_id: usize) -> Result<(), Error> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), Error> {
     println!(" ---- CRABBY (WIP) ---- ");
     println!("Which file would you like to use? (e.g., diary.txt)");
     let mut path = String::new();
@@ -75,9 +88,11 @@ fn main() {
     let path = path.trim();
 
     println!("\nEnter note: ");
-    take_note(path).expect("Failed to take note");
+    take_note(path)?;
     println!("Note saved successfully.");
 
-    read_note(path).expect("Failed to read note");
-    delete_note(path, 1).expect("Failed to delete note");
+    read_note(path)?;
+    delete_note(path, 1)?;
+
+    Ok(())
 }
