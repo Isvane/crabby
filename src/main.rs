@@ -1,7 +1,11 @@
+use chrono::{self, DateTime, Local};
 use std::fs::{self, OpenOptions};
 use std::io::{self, Error, Write};
 
 pub fn save_note(message: &str, file_path: &str) -> Result<(), Error> {
+    let now: DateTime<Local> = Local::now();
+    let time = now.format("%Y-%m-%d %H:%M:%S").to_string();
+
     let content = fs::read_to_string(file_path).unwrap_or_default();
     let id = content.lines().count() + 1;
 
@@ -10,7 +14,7 @@ pub fn save_note(message: &str, file_path: &str) -> Result<(), Error> {
         .append(true)
         .open(file_path)?;
 
-    writeln!(file, "{}: {}", id, message)?;
+    writeln!(file, "{}: {} [{}]", id, message, time)?;
     Ok(())
 }
 
@@ -61,6 +65,7 @@ pub fn delete_note(file_path: &str, target_id: usize) -> Result<(), Error> {
 }
 
 fn main() {
+    println!(" ---- CRABBY (WIP) ---- ");
     println!("Which file would you like to use? (e.g., diary.txt)");
     let mut path = String::new();
     io::stdin()
