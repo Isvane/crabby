@@ -1,6 +1,7 @@
 use chrono::{self, DateTime, Local};
 use std::fs::{self, OpenOptions};
 use std::io::{self, Error, Write};
+use std::path::PathBuf;
 
 pub fn save_note(message: &str, file_path: &str) -> Result<(), Error> {
     let now: DateTime<Local> = Local::now();
@@ -79,7 +80,7 @@ pub fn delete_note(file_path: &str, target_id: usize) -> Result<(), Error> {
 
 fn main() -> Result<(), Error> {
     println!(" ---- CRABBY (WIP) ---- ");
-    println!("Which file would you like to use? (e.g., diary.txt)");
+    println!("Which file would you like to use? (default: diary.txt)");
     let mut path = String::new();
     io::stdin()
         .read_line(&mut path)
@@ -87,12 +88,33 @@ fn main() -> Result<(), Error> {
 
     let path = path.trim();
 
-    println!("\nEnter note: ");
-    take_note(path)?;
-    println!("Note saved successfully.");
+    let mut path_buf = PathBuf::from(if path.is_empty() { "diary.txt" } else { path });
 
-    read_note(path)?;
-    delete_note(path, 1)?;
+    if path_buf.extension().is_none() {
+        path_buf.set_extension("txt");
+    }
 
-    Ok(())
+    let final_path = path_buf.to_string_lossy().into_owned();
+
+    loop {
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+
+        match input.trim().to_lowercase().as_str() {
+            "list" => read_note(&final_path)?,
+            "add" => take_note(&final_path)?,
+            "delete" => {
+                println!("Enter the ID to delete:");
+                let mut id_str = String::new();
+                io::stdin().read_line(&mut id_str)?;
+
+                match id_str.trim().parse::<usize>() {
+                    Ok(id) => delete_note(&final_path, id)?,
+                    Err(_) => println!("Please enter a valid number!"),
+                }
+            }
+            "quit" => break Ok(()),
+            _ => println!("Invalid command"),
+        }
+    }
 }
