@@ -7,15 +7,12 @@ pub fn save_note(message: &str, file_path: &str) -> Result<(), Error> {
     let now: DateTime<Local> = Local::now();
     let time = now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-    let content = fs::read_to_string(file_path).unwrap_or_default();
-    let id = content.lines().count() + 1;
-
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
         .open(file_path)?;
 
-    writeln!(file, "{}: {} [{}]", id, message, time)?;
+    writeln!(file, "{} [{}]", message, time)?;
     Ok(())
 }
 
@@ -49,30 +46,49 @@ pub fn read_note(file_path: &str) -> Result<(), Error> {
     if contents.is_empty() {
         println!("Notes empty")
     } else {
-        println!("File Contents:\n{}", contents);
+        for (index, line) in contents.lines().enumerate() {
+            let id = index + 1;
+
+            println!("{} {}", id.to_string(), line);
+        }
     }
     Ok(())
 }
 
-pub fn delete_note(file_path: &str, target_id: usize) -> Result<(), Error> {
-    let content = fs::read_to_string(file_path)?;
-    let mut new_content = String::new();
-    let mut found = false;
+pub fn delete_note(file_path: &str) -> Result<(), Error> {
+    read_note(file_path)?;
 
-    for line in content.lines() {
-        if line.starts_with(&format!("{}:", target_id)) {
-            found = true;
-            continue;
-        }
-        new_content.push_str(line);
-        new_content.push('\n');
+    let content = fs::read_to_string(file_path)?;
+    let mut lines: Vec<String> = content.lines().map(String::from).collect();
+
+    if content.trim().is_empty() {
+        return Ok(());
     }
 
-    if found {
-        fs::write(file_path, new_content)?;
-        println!("Note {} deleted.", target_id);
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)?;
+
+    let id: usize = match input.trim().parse() {
+        Ok(num) if num > 0 => num,
+        _ => {
+            println!("Invalid ID. Please enter a number.");
+            return Ok(());
+        }
+    };
+
+    if id > lines.len() {
+        println!("ID out of range!");
+        return Ok(());
+    }
+
+    lines.remove(id - 1);
+
+    let after_delete = lines.join("\n");
+
+    if !after_delete.is_empty() {
+        std::fs::write(file_path, after_delete + "\n")?;
     } else {
-        println!("Note with ID {} not found.", target_id);
+        std::fs::write(file_path, "")?;
     }
 
     Ok(())
@@ -103,16 +119,7 @@ fn main() -> Result<(), Error> {
         match input.trim().to_lowercase().as_str() {
             "list" => read_note(&final_path)?,
             "add" => take_note(&final_path)?,
-            "delete" => {
-                println!("Enter the ID to delete:");
-                let mut id_str = String::new();
-                io::stdin().read_line(&mut id_str)?;
-
-                match id_str.trim().parse::<usize>() {
-                    Ok(id) => delete_note(&final_path, id)?,
-                    Err(_) => println!("Please enter a valid number!"),
-                }
-            }
+            "delete" => delete_note(&final_path)?,
             "quit" => break Ok(()),
             _ => println!("Invalid command"),
         }
