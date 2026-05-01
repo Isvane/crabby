@@ -86,6 +86,7 @@ pub fn delete_note(file_path: &str) -> Result<(), Error> {
 
     fs::write(file_path, final_content)?;
     println!("Note #{} deleted.", id);
+    read_note(file_path)?;
 
     Ok(())
 }
@@ -106,7 +107,7 @@ fn main() -> Result<(), Error> {
 
     let final_path = path_buf.to_string_lossy().into_owned();
     println!(
-        "Using: {}\nType 'list', 'add', 'delete', or 'quit'.",
+        "Using: {}\nType 'list', 'add', 'delete', 'quit', 'clear'",
         final_path
     );
 
@@ -121,7 +122,15 @@ fn main() -> Result<(), Error> {
                 println!("Goodbye!");
                 break Ok(());
             }
-            _ => println!("! Unknown command. Try: list, add, delete, quit"),
+            "clear" => {
+                if let Err(e) = clearscreen::clear() {
+                    eprintln!("! Could not clear screen: {}", e);
+                }
+            }
+            _ => println!(
+                "! Unknown command {}. Try: list, add, delete, quit, clear",
+                cmd
+            ),
         }
     }
 }
