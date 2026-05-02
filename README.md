@@ -4,10 +4,10 @@ A simple Rust application for managing text-based notes.
 This tool allows users to append notes to a specific file with automatic indexing and basic CRUD (Create, Read, Delete) functionality.
 
 ## Feature
-- Choose or create any text file to serve as your note repository.
-- Each note is automatically assigned an ID based on the current line count.
-- Notes are appended to the local filesystem.
-- Functions to take, read, and delete notes by their unique ID.
+- Use the default diary.txt or specify your own file. Crabby automatically handles .txt extensions if you forget them.
+- Every note is saved with a precision timestamp using the chrono crate.
+- Functions to take, read, and delete notes by their ID.
+- Built-in clear command to keep your workspace tidy.
 
 ## Usage
 
@@ -25,3 +25,12 @@ cd crabby
 # Run the program
 cargo run
 ```
+
+## Commands
+
+Once the application is running, you can use the following commands at the >> prompt:
+- `add`: Enter note-taking mode (type 'quit' to return to main menu).
+- `list`: Display all notes in the current file with their IDs.
+- `delete`: Prompts for a Note ID to remove a specific entry.
+- `clear`: Clears the terminal screen.
+- `quit`: Safely exits the application.
