@@ -12,6 +12,20 @@ fn prompt(message: &str) -> Result<String, Error> {
     Ok(input.trim().to_string())
 }
 
+fn formatted_line(index: usize, line: &str) {
+    if let Some(pos) = line.find(']') {
+        let (ts, msg) = line.split_at(pos + 1);
+        println!(
+            "{:2} | {} {}",
+            (index + 1).to_string().magenta(),
+            ts.dimmed(),
+            msg.white()
+        );
+    } else {
+        println!("{:2} | {}", (index + 1).to_string().magenta(), line);
+    }
+}
+
 pub fn save_note(message: &str, file_path: &str) -> Result<(), Error> {
     let now: DateTime<Local> = Local::now();
     let time = now.format("%Y-%m-%d %H:%M:%S");
@@ -61,17 +75,7 @@ pub fn read_note(file_path: &str) -> Result<(), Error> {
         println!("{}", "(The file is empty)".truecolor(128, 128, 128));
     } else {
         for (index, line) in contents.lines().enumerate() {
-            if let Some(pos) = line.find(']') {
-                let (ts, msg) = line.split_at(pos + 1);
-                println!(
-                    "{:2} | {} {}",
-                    (index + 1).to_string().magenta(),
-                    ts.dimmed(),
-                    msg.white()
-                );
-            } else {
-                println!("{:2} | {}", (index + 1).to_string().magenta(), line);
-            }
+            formatted_line(index, line);
         }
     }
     println!("{}", "--------------------------".blue().bold());
@@ -80,7 +84,6 @@ pub fn read_note(file_path: &str) -> Result<(), Error> {
 
 pub fn search_note(file_path: &str) -> Result<(), Error> {
     let query = prompt("Search for: ")?.to_lowercase();
-
     if query.is_empty() {
         return Ok(());
     }
@@ -94,7 +97,7 @@ pub fn search_note(file_path: &str) -> Result<(), Error> {
     let matches: Vec<(usize, &str)> = contents
         .lines()
         .enumerate()
-        .filter(|(_index, line)| line.to_lowercase().contains(&query))
+        .filter(|(_, line)| line.to_lowercase().contains(&query))
         .collect();
 
     if matches.is_empty() {
@@ -111,17 +114,7 @@ pub fn search_note(file_path: &str) -> Result<(), Error> {
         );
 
         for (index, line) in matches {
-            if let Some(pos) = line.find(']') {
-                let (ts, msg) = line.split_at(pos + 1);
-                println!(
-                    "{:2} | {} {}",
-                    (index + 1).to_string().magenta(),
-                    ts.dimmed(),
-                    msg.white()
-                );
-            } else {
-                println!("{:2} | {}", (index + 1).to_string().magenta(), line);
-            }
+            formatted_line(index, line);
         }
         println!("{}", "--------------------------".green().bold());
     }
