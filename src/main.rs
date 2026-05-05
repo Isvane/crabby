@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use colored::Colorize;
-use std::fs::{self, OpenOptions};
-use std::io::{self, Error, Write};
+use std::fs::{self, File, OpenOptions};
+use std::io::{self, BufRead, Error, Write};
 use std::path::PathBuf;
 
 fn prompt(message: &str) -> Result<String, Error> {
@@ -54,6 +54,66 @@ pub fn take_note(save_location: &str) -> Result<(), Error> {
             _ => save_note(&input, save_location)?,
         }
     }
+    Ok(())
+}
+
+pub fn show_stats(file_path: &str) -> Result<(), Error> {
+    let file = match File::open(file_path) {
+        Ok(f) => f,
+        Err(_) => {
+            println!("{}", "! No data found to analyze.".red());
+            return Ok(());
+        }
+    };
+
+    let reader = io::BufReader::new(file);
+    let mut letters = 0;
+    let mut words = 0;
+    let mut line_count = 0;
+
+    for line in reader.lines() {
+        let line = line?;
+        if let Some((_, message)) = line.split_once(']') {
+            line_count += 1;
+            words += message.split_whitespace().count();
+            letters += message.chars().filter(|c| c.is_alphanumeric()).count();
+        }
+    }
+
+    if line_count > 0 {
+        let avg_len = letters as f64 / line_count as f64;
+
+        println!(
+            "\n{}",
+            "┌──────────────────────────────────────────┐".blue()
+        );
+        println!(
+            "│ {:^40} │",
+            "SYSTEM ANALYTICS REPORT".bold().bright_white()
+        );
+        println!("{}", "├──────────────────────────────────────────┤".blue());
+
+        println!(
+            "│ {:<18} │ {:>19} │",
+            "Entries Count".white(),
+            line_count.to_string().cyan().bold()
+        );
+        println!(
+            "│ {:<18} │ {:>19} │",
+            "Word Count".white(),
+            words.to_string().cyan().bold()
+        );
+        println!(
+            "│ {:<18} │ {:>19} │",
+            "Avg. Density".white(),
+            format!("{:.1}", avg_len).cyan().bold()
+        );
+
+        println!("{}", "└──────────────────────────────────────────┘".blue());
+    } else {
+        println!("\n{} {}", "STATUS:".yellow().bold(), "Notebook is empty.");
+    }
+
     Ok(())
 }
 
@@ -148,7 +208,7 @@ pub fn delete_note(file_path: &str) -> Result<(), Error> {
     }
 
     fs::write(file_path, final_content)?;
-    println!("{}", format!("✘ Note #{} deleted.", id).red());
+    println!("{}", format!("Note #{} deleted.", id).red());
     read_note(file_path)?;
 
     Ok(())
@@ -177,7 +237,7 @@ fn main() -> Result<(), Error> {
         "Target:".bright_black(),
         final_path.underline(),
         "Commands:".bright_black(),
-        "list, add, search, delete, quit, clear".yellow()
+        "list, add, search, delete, stats, clear, quit".yellow()
     );
 
     loop {
@@ -197,6 +257,7 @@ fn main() -> Result<(), Error> {
                     eprintln!("{} {}", "! Could not clear screen:".red(), e);
                 }
             }
+            "stats" => show_stats(&final_path)?,
             _ => println!(
                 "{} {}. Try: {}",
                 "! Unknown command".red(),
