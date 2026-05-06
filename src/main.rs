@@ -5,7 +5,7 @@ use std::path::PathBuf;
 mod notes;
 mod utils;
 
-use notes::{delete_note, read_note, search_note, show_stats, take_note};
+use notes::{clear_note, delete_note, read_note, search_note, show_stats, take_note};
 use utils::prompt;
 
 fn main() -> Result<(), Error> {
@@ -31,7 +31,7 @@ fn main() -> Result<(), Error> {
         "Target:".bright_black(),
         final_path.underline(),
         "Commands:".bright_black(),
-        "list, add, search, delete, stats, clear, quit".yellow()
+        "list, add, search, delete, stats, purge, clear, quit".yellow()
     );
 
     loop {
@@ -52,11 +52,12 @@ fn main() -> Result<(), Error> {
                 }
             }
             "stats" => show_stats(&final_path)?,
+            "purge" => clear_note(&final_path)?,
             _ => println!(
                 "{} {}. Try: {}",
                 "! Unknown command".red(),
                 cmd.white().bold(),
-                "list, add, delete, quit, clear".yellow()
+                "list, add, delete, stats, purge, clear, quit".yellow()
             ),
         }
     }

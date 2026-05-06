@@ -192,3 +192,21 @@ pub fn delete_note(file_path: &str) -> Result<(), Error> {
 
     Ok(())
 }
+
+pub fn clear_note(file_path: &str) -> Result<(), Error> {
+    if !std::path::Path::new(file_path).exists() {
+        println!("{}", "! No notes file found to clear.".red());
+        return Ok(());
+    }
+
+    let confirm = prompt("Are you sure you want to delete ALL notes? (y/N): ")?;
+
+    if confirm.to_lowercase().trim() == "y" {
+        File::create(file_path)?;
+        println!("{}", "--- Notebook purged successfully. ---".red().bold());
+    } else {
+        println!("{}", "Operation cancelled.".yellow());
+    }
+
+    Ok(())
+}
