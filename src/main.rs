@@ -11,7 +11,7 @@ use utils::prompt;
 fn main() -> Result<(), Error> {
     println!(
         "{}",
-        "==== CRABBY (v0.1.0) ====".truecolor(255, 69, 0).bold()
+        "\n==== CRABBY (v0.1.0) ====\n".truecolor(255, 69, 0).bold()
     );
 
     let path_input = utils::prompt("Select file (default: diary.txt): ")?;
@@ -35,7 +35,8 @@ fn main() -> Result<(), Error> {
     );
 
     loop {
-        let cmd = prompt(">> ")?.to_lowercase();
+        let prompt_label = format!("[{}] >> ", final_path).bright_black();
+        let cmd = prompt(&prompt_label)?.to_lowercase();
 
         match cmd.as_str() {
             "list" => read_note(&final_path)?,

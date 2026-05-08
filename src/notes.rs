@@ -33,6 +33,7 @@ pub fn take_note(save_location: &str) -> Result<(), Error> {
             _ => save_note(&input, save_location)?,
         }
     }
+    println!("");
     Ok(())
 }
 
@@ -40,7 +41,8 @@ pub fn show_stats(file_path: &str) -> Result<(), Error> {
     let file = match File::open(file_path) {
         Ok(f) => f,
         Err(_) => {
-            println!("{}", "! No data found to analyze.".red());
+            println!("\n{}", "! No data found to analyze.".red());
+            println!("");
             return Ok(());
         }
     };
@@ -71,7 +73,6 @@ pub fn show_stats(file_path: &str) -> Result<(), Error> {
             "SYSTEM ANALYTICS REPORT".bold().bright_white()
         );
         println!("{}", "├──────────────────────────────────────────┤".blue());
-
         println!(
             "│ {:<18} │ {:>19} │",
             "Entries Count".white(),
@@ -87,18 +88,18 @@ pub fn show_stats(file_path: &str) -> Result<(), Error> {
             "Avg. Density".white(),
             format!("{:.1}", avg_len).cyan().bold()
         );
-
         println!("{}", "└──────────────────────────────────────────┘".blue());
     } else {
         println!("\n{} Notebook is empty.", "STATUS:".yellow().bold());
     }
-
+    println!("");
     Ok(())
 }
 
 pub fn read_note(file_path: &str) -> Result<(), Error> {
     if !std::path::Path::new(file_path).exists() {
-        println!("{}", "! No notes file found.".red());
+        println!("\n{}", "! No notes file found.".red());
+        println!("");
         return Ok(());
     }
 
@@ -118,17 +119,22 @@ pub fn read_note(file_path: &str) -> Result<(), Error> {
         }
     }
     println!("{}", "--------------------------".blue().bold());
+    println!("");
     Ok(())
 }
 
 pub fn search_note(file_path: &str) -> Result<(), Error> {
+    println!("");
     let query = prompt("Search for: ")?.to_lowercase();
+
     if query.is_empty() {
+        println!("");
         return Ok(());
     }
 
     if !std::path::Path::new(file_path).exists() {
-        println!("{}", "! No notes file found.".red());
+        println!("\n{}", "! No notes file found.".red());
+        println!("");
         return Ok(());
     }
 
@@ -141,7 +147,7 @@ pub fn search_note(file_path: &str) -> Result<(), Error> {
 
     if matches.is_empty() {
         println!(
-            "{}",
+            "\n{}",
             format!("! No matches found for '{}'.", query).yellow()
         );
     } else {
@@ -157,7 +163,7 @@ pub fn search_note(file_path: &str) -> Result<(), Error> {
         }
         println!("{}", "--------------------------".green().bold());
     }
-
+    println!("");
     Ok(())
 }
 
@@ -175,7 +181,8 @@ pub fn delete_note(file_path: &str) -> Result<(), Error> {
     let id: usize = match input.parse() {
         Ok(num) if num > 0 && num <= lines.len() => num,
         _ => {
-            println!("{}", "! Invalid ID.".red().bold());
+            println!("\n{}", "! Invalid ID.".red().bold());
+            println!("");
             return Ok(());
         }
     };
@@ -187,26 +194,28 @@ pub fn delete_note(file_path: &str) -> Result<(), Error> {
     }
 
     fs::write(file_path, final_content)?;
-    println!("{}", format!("Note #{} deleted.", id).red());
-    read_note(file_path)?;
+    println!("\n{}", format!("Note #{} deleted.", id).red());
 
+    read_note(file_path)?;
     Ok(())
 }
 
 pub fn clear_note(file_path: &str) -> Result<(), Error> {
     if !std::path::Path::new(file_path).exists() {
-        println!("{}", "! No notes file found to clear.".red());
+        println!("\n{}", "! No notes file found to clear.".red());
+        println!("");
         return Ok(());
     }
 
+    println!("");
     let confirm = prompt("Are you sure you want to delete ALL notes? (y/N): ")?;
 
     if confirm.to_lowercase().trim() == "y" {
         File::create(file_path)?;
-        println!("{}", "--- Notebook purged successfully. ---".red().bold());
+        println!("\n{}", "--- Notebook purged successfully. ---".red().bold());
     } else {
-        println!("{}", "Operation cancelled.".yellow());
+        println!("\n{}", "Operation cancelled.".yellow());
     }
-
+    println!("");
     Ok(())
 }
