@@ -16,6 +16,15 @@ impl Notebook {
         }
     }
 
+    fn check_file(&self) -> Result<bool, Error> {
+        if !std::path::Path::new(&self.file_path).exists() {
+            println!("\n{}", "! No notes file found.".red());
+            println!("");
+            return Ok(false);
+        }
+        Ok(true)
+    }
+
     pub fn save_note(&self, message: &str) -> Result<(), Error> {
         let now: DateTime<Local> = Local::now();
         let time = now.format("%Y-%m-%d %H:%M:%S");
@@ -49,14 +58,10 @@ impl Notebook {
     }
 
     pub fn show_stats(&self) -> Result<(), Error> {
-        let file = match File::open(&self.file_path) {
-            Ok(f) => f,
-            Err(_) => {
-                println!("\n{}", "! No data found to analyze.".red());
-                println!("");
-                return Ok(());
-            }
-        };
+        if !self.check_file()? {
+            return Ok(());
+        }
+        let file = File::open(&self.file_path)?;
 
         let reader = io::BufReader::new(file);
         let mut letters = 0;
@@ -108,9 +113,7 @@ impl Notebook {
     }
 
     pub fn read_note(&self) -> Result<(), Error> {
-        if !std::path::Path::new(&self.file_path).exists() {
-            println!("\n{}", "! No notes file found.".red());
-            println!("");
+        if !self.check_file()? {
             return Ok(());
         }
 
@@ -143,9 +146,7 @@ impl Notebook {
             return Ok(());
         }
 
-        if !std::path::Path::new(&self.file_path).exists() {
-            println!("\n{}", "! No notes file found.".red());
-            println!("");
+        if !self.check_file()? {
             return Ok(());
         }
 
@@ -207,14 +208,11 @@ impl Notebook {
         fs::write(&self.file_path, final_content)?;
         println!("\n{}", format!("Note #{} deleted.", id).red());
 
-        self.read_note()?;
         Ok(())
     }
 
     pub fn clear_note(&self) -> Result<(), Error> {
-        if !std::path::Path::new(&self.file_path).exists() {
-            println!("\n{}", "! No notes file found to clear.".red());
-            println!("");
+        if !self.check_file()? {
             return Ok(());
         }
 
