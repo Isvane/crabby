@@ -5,7 +5,7 @@ use std::path::PathBuf;
 mod notes;
 mod utils;
 
-use notes::{clear_note, delete_note, read_note, search_note, show_stats, take_note};
+use notes::Notebook;
 use utils::prompt;
 
 fn main() -> Result<(), Error> {
@@ -26,6 +26,8 @@ fn main() -> Result<(), Error> {
     }
 
     let final_path = path_buf.to_string_lossy().into_owned();
+    let notebook = Notebook::new(&final_path);
+
     println!(
         "{} {}\n{} {}",
         "Target:".bright_black(),
@@ -39,10 +41,10 @@ fn main() -> Result<(), Error> {
         let cmd = prompt(&prompt_label)?.to_lowercase();
 
         match cmd.as_str() {
-            "list" => read_note(&final_path)?,
-            "add" => take_note(&final_path)?,
-            "search" => search_note(&final_path)?,
-            "delete" => delete_note(&final_path)?,
+            "list" => notebook.read_note()?,
+            "add" => notebook.take_note()?,
+            "search" => notebook.search_note()?,
+            "delete" => notebook.delete_note()?,
             "quit" => {
                 println!("{}", "Goodbye!".green());
                 break Ok(());
@@ -52,8 +54,8 @@ fn main() -> Result<(), Error> {
                     eprintln!("{} {}", "! Could not clear screen:".red(), e);
                 }
             }
-            "stats" => show_stats(&final_path)?,
-            "purge" => clear_note(&final_path)?,
+            "stats" => notebook.show_stats()?,
+            "purge" => notebook.clear_note()?,
             _ => println!(
                 "{} {}. Try: {}",
                 "! Unknown command".red(),
